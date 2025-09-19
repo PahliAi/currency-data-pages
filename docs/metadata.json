@@ -1,0 +1,17 @@
+{
+    "base_currency": "EUR",
+    "supported_currencies": [
+      "EUR", "USD", "GBP", "JPY", "CHF", "CAD", "AUD", "DKK", "SEK", "NOK",
+      "PLN", "CZK", "HUF", "RON", "BGN", "CNY", "KRW", "HKD", "SGD", "THB",
+      "PHP", "MYR", "IDR", "INR", "NZD", "ZAR", "TRY", "MXN", "BRL", "ILS"
+    ],
+    "total_currencies": 30,
+    "data_source": "European Central Bank via exchangerate-api.com",
+    "last_updated": "2025-09-19T08:00:00Z",
+    "total_records": 6586,
+    "latest_date": "2025-09-17",
+    "file_sizes": {
+      "full_data_mb": 3.2,
+      "latest_kb": 0.8
+    }
+  }
