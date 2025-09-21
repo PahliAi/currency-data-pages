@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""
-Update currency data and deploy to GitHub Pages.
+###
+# #Update currency data and deploy to GitHub Pages.
 
-This script:
-1. Fetches latest currency rates from ECB/API sources
-2. Updates the full historical data file
-3. Creates optimized latest.json file
-4. Generates metadata with statistics
-"""
+# #This script:
+# #1. Fetches latest currency rates from ECB/API sources
+# #2. Updates the full historical data file
+# #3. Creates optimized latest.json file
+# #4. Generates metadata with statistics
 
 import pandas as pd
 import yfinance as yf
