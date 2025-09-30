@@ -1,0 +1,143 @@
+name: Update Currency Data
+
+on:
+  schedule:
+    # Run daily at 6:00 AM CET (5:00 AM UTC)
+    - cron: '0 5 * * *'
+  workflow_dispatch: # Allow manual trigger
+  push:
+    branches: [ main ]
+    paths: [ 'scripts/**', '.github/workflows/**' ]
+
+jobs:
+  update-currency-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests yfinance pandas
+
+    - name: Update currency rates
+      run: |
+        python scripts/update_and_deploy.py
+
+    - name: Create docs directory structure
+      run: |
+        mkdir -p docs
+
+    - name: Copy currency data to docs
+      run: |
+        cp data/currency_rates.json docs/currency_rates.json
+
+    - name: Create latest.json for docs
+      run: |
+        python -c "
+import json
+from datetime import datetime
+
+# Load full data
+with open('data/currency_rates.json', 'r') as f:
+    data = json.load(f)
+
+# Get latest rates
+latest_date = data['metadata']['latest_date']
+year = latest_date[:4]
+month_day = latest_date[5:]
+
+if year in data['rates_by_year'] and month_day in data['rates_by_year'][year]:
+    rates_array = data['rates_by_year'][year][month_day]
+    currencies = data['currencies']
+
+    # Convert to dictionary format
+    rates_dict = {}
+    for i, currency in enumerate(currencies):
+        if rates_array[i] is not None:
+            rates_dict[currency] = rates_array[i]
+
+    latest_data = {
+        'date': latest_date,
+        'base_currency': 'EUR',
+        'rates': rates_dict,
+        'last_updated': datetime.now().isoformat()
+    }
+
+    with open('docs/latest.json', 'w') as f:
+        json.dump(latest_data, f, indent=2)
+
+    print(f'Created latest.json with {len(rates_dict)} currencies for {latest_date}')
+else:
+    print(f'No data found for {latest_date}')
+"
+
+    - name: Create metadata.json for docs
+      run: |
+        python -c "
+import json
+import os
+from datetime import datetime
+
+# Load full data
+with open('data/currency_rates.json', 'r') as f:
+    data = json.load(f)
+
+metadata = {
+    'base_currency': 'EUR',
+    'supported_currencies': ['EUR'] + data['currencies'],
+    'total_currencies': len(data['currencies']) + 1,
+    'data_source': 'European Central Bank via exchangerate-api.com',
+    'last_updated': datetime.now().isoformat(),
+    'total_records': data['metadata']['total_records'],
+    'latest_date': data['metadata']['latest_date'],
+    'date_range': {
+        'start': data['metadata']['earliest_date'],
+        'end': data['metadata']['latest_date']
+    },
+    'file_sizes': {
+        'full_data_mb': round(os.path.getsize('docs/currency_rates.json') / 1024 / 1024, 2),
+        'latest_kb': round(os.path.getsize('docs/latest.json') / 1024, 2) if os.path.exists('docs/latest.json') else 0
+    }
+}
+
+with open('docs/metadata.json', 'w') as f:
+    json.dump(metadata, f, indent=2)
+
+print(f'Created metadata.json: {metadata[\"total_records\"]} records, {metadata[\"file_sizes\"]}')
+"
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './docs'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+    - name: Commit updated data
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/currency_rates.json docs/
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update currency data - $(date +'%Y-%m-%d %H:%M CET')"
+          git push
+        fi
