@@ -34,12 +34,12 @@
   ],
   "total_currencies": 30,
   "data_source": "European Central Bank via exchangerate-api.com",
-  "last_updated": "2025-11-27T05:16:30.919504",
-  "total_records": 60,
-  "latest_date": "2025-11-27",
+  "last_updated": "2025-11-28T05:16:27.726865",
+  "total_records": 61,
+  "latest_date": "2025-11-28",
   "date_range": {
     "start": "2025-09-29",
-    "end": "2025-11-27"
+    "end": "2025-11-28"
   },
   "file_sizes": {
     "full_data_mb": 0.01,
